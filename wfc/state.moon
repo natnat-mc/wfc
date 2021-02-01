@@ -16,7 +16,7 @@ sstring = (x) ->
 	{state, val} = x
 	switch state
 		when Known then "Known #{val}"
-		when Possible then "Possible #{table.concat [tostring e for e in *val], ', '}"
+		when Possible then "Possible #{table.concat [tostring e for e in pairs val], ', '}"
 		when Unknown then "Unknown"
 
 {

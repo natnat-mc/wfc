@@ -68,22 +68,26 @@ isvalid = (refs, domain, constraints) ->
 	switch ctype
 		when All
 			for c in *cparm
-				return false unless isvalid refs, domain, c
+				x, msg = isvalid refs, domain, c
+				return false, msg unless x
 			true
 		when Any
 			for c in *cparm
 				return true if isvalid refs, domain, c
-			false
+			false, "Any"
 		when Same
 			known, v = false, nil
 			for ref in *cparm
 				{rstate, rval} = refs[ref]
 				switch rstate
 					when Known
-						return false if known and v != rval
+						return false, "Same Known" if known and v != rval
 						known, v = true, rval
+			for ref in *cparm
+				{rstate, rval} = refs[ref]
+				switch rstate
 					when Possible
-						return false if known and not rval[v]
+						return false, "Same Possible" if known and not rval[v]
 			true
 		when NotSame
 			seen = {}
@@ -91,7 +95,7 @@ isvalid = (refs, domain, constraints) ->
 				{rstate, rval} = refs[ref]
 				switch rstate
 					when Known
-						return false if seen[rval]
+						return false, "NotSame Known" if seen[rval]
 						seen[rval] = true
 			for ref in *cparm
 				{rstate, rval} = refs[ref]
@@ -100,28 +104,36 @@ isvalid = (refs, domain, constraints) ->
 						some = false
 						for v in pairs rval
 							some = true unless seen[v]
-						return false unless some
+						return false, "NotSame Possible" unless some
 			true
 		when OneOf
 			{ref, vals} = cparm
 			{rstate, rval} = refs[ref]
 			switch rstate
 				when Known
-					vals[rval]
+					if vals[rval]
+						true
+					else
+						false, "OneOf Known"
 				when Possible
-					hasinter vals, rval
-				when Unknown
-					true
+					if hasinter vals, rval
+						true
+					else
+						false, "OneOf Possible"
 		when NoneOf
 			{ref, vals} = cparm
 			{rstate, rval} = refs[ref]
 			switch rstate
 				when Known
-					not vals[rval]
+					if vals[rval]
+						false, "NoneOf Known"
+					else
+						true
 				when Possible
-					hasinter vals, compl rval, domain.set
-				when Unknown
-					true
+					if hasinter rval, compl vals, domain.set
+						true
+					else
+						false, "NoneOf Possible"
 		else
 			error "Invalid constraint"
 
@@ -266,7 +278,9 @@ solve = (refs, domain, constraints) ->
 	while not stalled
 		-- check if all constraints are still possible
 		print "isvalid"
-		error "Invalid state" unless isvalid refs, domain, constraints
+		do
+			valid, msg = isvalid refs, domain, constraints
+			error "Invalid state: #{msg}" unless valid
 		-- check if the state is already solved
 		print "issolved"
 		return refs if issolved refs
