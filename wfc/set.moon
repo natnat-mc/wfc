@@ -30,6 +30,12 @@ empty = (x) ->
 oneelem = (x) ->
 	(not empty x) and not next x, next x
 
+-- count x = card(x)
+count = (x) ->
+	n = 0
+	n += 1 for k in pairs x
+	n
+
 -- nointer x, y = card(x ∩ y) == 0
 nointer = (x, y) ->
 	for k in pairs x
@@ -53,7 +59,7 @@ same = (x, y) ->
 {
 	:clone
 	:inter, :union, :exclu, :compl
-	:empty, :oneelem
+	:empty, :oneelem, :count
 	:nointer, :hasinter
 	:same
 }

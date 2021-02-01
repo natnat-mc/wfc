@@ -16,8 +16,8 @@ grid = do
 	m
 
 domain = Domain\frommap
-	W: 40
-	L: 45
+	W: 30
+	L: 55
 	C: 10
 	M: 5
 

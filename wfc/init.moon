@@ -1,6 +1,6 @@
 import cvalid, capply from require 'wfc.constraint'
 import Known, Possible, Unknown, sstring from require 'wfc.state'
-import empty, oneelem from require 'wfc.set'
+import empty, oneelem, count from require 'wfc.set'
 import clone, islist from require 'wfc.util'
 
 -- pretty-prints a system
@@ -31,8 +31,9 @@ doconstants = (refs) ->
 
 -- determine the priority of a given ref, higher number is higher priority
 priority = (refs, ref, domain, constraints) ->
-	-- for now, priority only considers the number of forks, negative so that less is better
-	-#refs[ref][2]
+	{_, rval} = refs[ref]
+	-- negative of number of branches
+	-count rval
 
 -- get the cell with the highest priority
 getprio = (refs, domain, constraints) ->
