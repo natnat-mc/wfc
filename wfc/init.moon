@@ -52,15 +52,8 @@ getvals = (refs, ref, domain) ->
 		possible[try] = nil
 		try
 
--- solve a problem defined by refs, a domain and a constraint (which is probably an All constraint)
-solve = (refs, domain, constraints) ->
-	-- clone the refs
-	print "clone"
-	refs = clone refs
-	-- turn Unknown into Possible with the entire domain
-	print "dounknowns"
-	dounknowns refs, domain, constraints
-
+-- actually solve a problem
+solveimp = (refs, domain, constraints) ->
 	-- loop until we stall
 	stalled = false
 	while not stalled
@@ -98,12 +91,24 @@ solve = (refs, domain, constraints) ->
 		-- clone the current state of the refs
 		newrefs = clone refs
 		-- make a guess
+		print "guess #{ref} = #{v}"
 		newrefs[ref] = Known v
 		-- and call the solver recursively
-		success, result = pcall -> solve newrefs, domain, constraints
+		success, result = pcall -> solveimp newrefs, domain, constraints
 		-- give our result if the recursive call succeeded
 		return result if success
-	error "Invalid state"
+		print "wasnt valid: #{result}"
+	error "No valid state"
 
+-- solve a problem defined by refs, a domain and a constraint (which is probably an All constraint)
+solve = (refs, domain, constraints) ->
+	-- clone the refs
+	print "clone"
+	refs = clone refs
+	-- turn Unknown into Possible with the entire domain
+	print "dounknowns"
+	dounknowns refs, domain, constraints
+	-- and actually solve the thing
+	solveimp refs, domain, constraints
 
 { :solve }
