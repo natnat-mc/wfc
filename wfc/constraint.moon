@@ -35,7 +35,7 @@ cstring = (x) ->
 		when NoneOf then "NoneOf #{cparm[1]}; #{table.concat [tostring x for x in *cparm[2]], ', '}"
 
 {
-	:All, :All
+	:All, :Any
 	:Same, :NotSame
 	:OneOf, :NoneOf
 	:cname, :cstring

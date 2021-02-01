@@ -206,7 +206,30 @@ doconstraints = (refs, domain, constraints) ->
 			for c in *cparm
 				try doconstraints refs, domain, c
 		when Any
-			error "Unimplemented"
+			tries, i = {}, 1
+			touched = {}
+			for c in *cparm
+				touchedp = {}
+				poss = setmetatable {},
+					__index: refs
+					__newindex: (k, v) =>
+						rawset @, k, v
+						touchedp[k] = true
+				ok = pcall -> doconstraints poss, domain, c
+				if ok
+					tries[i], i = poss, i + 1
+					touched = union touched, touchedp
+			error "Invalid state" if i==1
+			for ref in pairs touched
+				vals = {}
+				for j=1, i-1
+					{rstate, rval} = tries[j][ref]
+					switch rstate
+						when Known
+							vals[rval] = true
+						when Possible
+							vals = union vals, rval
+				try _set refs, ref, vals
 		when Same
 			known, v = 'not', clone domain.set
 			for ref in *cparm
@@ -321,7 +344,7 @@ solve = (refs, domain, constraints) ->
 		-- make a guess
 		newrefs[ref] = Known v
 		-- and call the solver recursively
-		success, result = pcall solve, newrefs, domain, constraints
+		success, result = pcall -> solve newrefs, domain, constraints
 		-- give our result if the recursive call succeeded
 		return result if success
 	error "Invalid state"

@@ -1,6 +1,6 @@
 import Unknown, Known from require 'wfc.state'
 import Domain from require 'wfc.domain'
-import NotSame, Same, OneOf, NoneOf, All from require 'wfc.constraint'
+import NotSame, Same, OneOf, NoneOf, All, Any from require 'wfc.constraint'
 import solve from require 'wfc'
 
 grid = [Unknown! for i=1, 4*4]
@@ -20,6 +20,7 @@ constraints = do
 	table.insert c, NoneOf 5, 1, 3
 	table.insert c, OneOf 6, 2, 4
 	table.insert c, NoneOf 16, 1, 3
+	table.insert c, Any (OneOf 4, 1), (OneOf 4, 3)
 	{All, c}
 
 solve grid, domain, constraints
