@@ -1,6 +1,6 @@
 import cvalid, capply from require 'wfc.constraint'
 import Known, Possible, Unknown, sstring from require 'wfc.state'
-import oneelem from require 'wfc.set'
+import empty, oneelem from require 'wfc.set'
 import clone, islist from require 'wfc.util'
 
 -- pretty-prints a system
@@ -33,6 +33,24 @@ doconstants = (refs) ->
 priority = (refs, ref, domain, constraints) ->
 	-- for now, priority only considers the number of forks, negative so that less is better
 	-#refs[ref][2]
+
+-- get the cell with the highest priority
+getprio = (refs, domain, constraints) ->
+	refks = [k for k, v in pairs refs when v[1] == Possible]
+	maxprio, candidate = -math.huge, nil
+	for ref in *refks
+		prio = priority refs, ref, domain, constraints
+		maxprio, candidate = prio, ref if prio > maxprio
+	candidate or error "Invalid state"
+
+-- get possible values in a random (weighted) order for a given cell
+getvals = (refs, ref, domain) ->
+	possible = clone refs[ref][2]
+	->
+		return nil if empty possible
+		try = domain\pickamong [x for x in pairs possible]
+		possible[try] = nil
+		try
 
 -- solve a problem defined by refs, a domain and a constraint (which is probably an All constraint)
 solve = (refs, domain, constraints) ->
@@ -71,21 +89,12 @@ solve = (refs, domain, constraints) ->
 
 	-- if we're here, we *need* to fork
 	-- first, find the cell with the highest priority
-	-- for a simple solver, the priority function can just be a flat value or the number of forks
-	-- for a generator, the priority should consider proximity, number of forks and constraints
 	print "getprio"
-	ref = do
-		refks = [k for k, v in pairs refs when v[1] == Possible]
-		maxprio, candidate = -math.huge, nil
-		for ref in *refks
-			prio = priority refs, ref, domain, constraints
-			maxprio, candidate = prio, ref if prio > maxprio
-		candidate
-	error "Invalid state" unless ref
+	ref = getprio refs, domain, constraints
 
 	-- try every possible value for the ref we selected
 	print "fork"
-	for v in pairs refs[ref][2]
+	for v in getvals refs, ref, domain
 		-- clone the current state of the refs
 		newrefs = clone refs
 		-- make a guess

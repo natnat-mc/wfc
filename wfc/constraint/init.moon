@@ -42,6 +42,7 @@ register = (constraint) ->
 			cstring[c] = constraint.string
 			cvalid[c] = constraint.valid or error "No constraint validity"
 			capply[c] = constraint.apply or error "No constraint applicator"
+			rawset constraints, cname[c], c
 			c
 		when 'string'
 			register require constraint
@@ -53,5 +54,5 @@ constraints = {
 }
 setmetatable constraints,
 	__index: (k) =>
-		ok, c = pcall -> register require "wfc.constraint.#{k\lower!}"
-		ok and c or nil
+		pcall -> register require "wfc.constraint.#{k\lower!}"
+		rawget @, k

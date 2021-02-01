@@ -1,4 +1,4 @@
-import Unknown, Known from require 'wfc.state'
+import Unknown from require 'wfc.state'
 import Domain from require 'wfc.domain'
 import NotSame, Same, OneOf, NoneOf, All, Any from require 'wfc.constraint'
 import solve from require 'wfc'
